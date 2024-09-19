@@ -37,7 +37,35 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Text("Hello Firebase!"),
+      appBar: AppBar(),
+      body: StreamBuilder(
+        stream: FirestoreDB().getTodo(),
+        builder: (context,snap){
+          if(snap.connectionState == ConnectionState.waiting){
+            return Center(child: CircularProgressIndicator(),);
+          }else if(snap.hasData){
+            return ListView.builder(
+                itemCount: snap.data!.docs.length,
+                itemBuilder: (context,index){
+              return ListTile(
+                leading: Text("${index+1}"),
+                title: Text("${snap.data!.docs[index]["taskType"] ?? ""}"),
+                subtitle: Text("${snap.data!.docs[index]["task"] ?? ""}"),
+                trailing: IconButton(
+                  onPressed: () async{
+                    await FirestoreDB().deleteTask(snap.data!.docs[index].id);
+                  },
+                  icon: Icon(Icons.delete_outline),
+                ),
+              );
+            });
+          }else{
+            return Center(
+              child: Text("No data found"),
+            );
+          }
+        },
+      ),
       floatingActionButton: FloatingActionButton(onPressed: (){
         showAddNewTaskPopUp();
       },child: Icon(Icons.add),),
