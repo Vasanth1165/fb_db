@@ -1,12 +1,15 @@
 import 'package:fb_db/auth%20change.dart';
 import 'package:fb_db/firebase_options.dart';
 import 'package:fb_db/firestore_db.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform
+  );
   runApp(MyApp());
 }
 
@@ -39,7 +42,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(),
       body: StreamBuilder(
-        stream: FirestoreDB().getTodo(),
+        stream: FirestoreDB().fetchAllTasks(),
         builder: (context,snap){
           if(snap.connectionState == ConnectionState.waiting){
             return Center(child: CircularProgressIndicator(),);
@@ -48,7 +51,9 @@ class _HomePageState extends State<HomePage> {
                 itemCount: snap.data!.docs.length,
                 itemBuilder: (context,index){
               return ListTile(
-                leading: Text("${index+1}"),
+                leading: Checkbox(value:snap.data!.docs[index]["isDone"], onChanged: (bool? value) {
+
+                },),
                 title: Text("${snap.data!.docs[index]["taskType"] ?? ""}"),
                 subtitle: Text("${snap.data!.docs[index]["task"] ?? ""}"),
                 trailing: IconButton(
@@ -61,7 +66,7 @@ class _HomePageState extends State<HomePage> {
             });
           }else{
             return Center(
-              child: Text("No data found"),
+              child: Text("No data found ${FirebaseAuth.instance.currentUser!.uid}"),
             );
           }
         },
